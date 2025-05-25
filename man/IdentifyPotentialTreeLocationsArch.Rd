@@ -33,8 +33,9 @@ applying spatial filtering and thresholding to locate likely stem base positions
 }
 \examples{
 \dontrun{
-# Assuming you already have output from Rasterize3DSlicesArch and 3D point cloud data:
-result <- IdentifyPotentialTreeLocationsArch(xyz_data, RasterMetric, RasterMetricSum, RasterMetricCount, voxel_size = 0.5)
-head(result)
+result <- IdentifyPotentialTreeLocationsArch(
+ xyz_data, RasterMetric, RasterMetricSum, RasterMetricCount,
+ voxel_size = 0.5)
 }
+
 }

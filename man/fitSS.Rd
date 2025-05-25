@@ -2,46 +2,50 @@
 % Please edit documentation in R/architecture.R
 \name{fitSS}
 \alias{fitSS}
-\title{Circle Fitting and Multiple Circle Detection in 2D Point Data}
+\title{Circle Fitting using Sum of Squares Optimization}
 \usage{
 fitSS(
   xy,
   a0 = mean(xy[, 1]),
   b0 = mean(xy[, 2]),
   r0 = mean(sqrt((xy[, 1] - a0)^2 + (xy[, 2] - b0)^2)),
-  height
+  height = NULL
 )
 }
 \arguments{
-\item{xy}{A numeric matrix or data frame with columns representing 2D coordinates (x, y) for circle fitting (used in \code{fitSS}).}
+\item{xy}{A numeric matrix or data frame with columns representing 2D coordinates (x, y)}
 
-\item{a0}{Initial value for circle center x-coordinate.}
+\item{a0}{Initial x-coordinate for circle center (default: mean of x values)}
 
-\item{b0}{Initial value for circle center y-coordinate.}
+\item{b0}{Initial y-coordinate for circle center (default: mean of y values)}
 
-\item{r0}{Initial value for circle radius.}
+\item{r0}{Initial radius estimate (default: mean distance from initial center)}
 
-\item{data}{A data frame or matrix with columns \code{x}, \code{y}, and \code{z} representing 3D points (used in \code{rc} and \code{rmc}).}
-
-\item{n}{Integer, minimum number of points used to fit a circle in each iteration.}
-
-\item{k}{Integer, maximum number of iterations for circle detection.}
-
-\item{t}{Numeric, threshold distance to consider a point as an inlier to a circle.}
-
-\item{d}{Integer, minimum number of inliers required to accept a circle model.}
-
-\item{max_circles}{Integer, maximum number of circles to detect (used in \code{rmc}).}
+\item{height}{Height value associated with the circle (optional)}
 }
 \value{
-\code{fitSS} returns a list with estimated circle parameters: center coordinates and radius.
-\code{rc} returns the best fitted circle model found after RANSAC iterations, including the average height.
-\code{rmc} returns a list of fitted circle models detected in the data.
+A list containing:
+\describe{
+  \item{par}{Numeric vector of length 3 containing (a, b, r), where:
+    \describe{
+      \item{a}{x-coordinate of fitted circle center}
+      \item{b}{y-coordinate of fitted circle center}
+      \item{r}{radius of fitted circle}
+    }
+  }
+  \item{height}{The height value passed to the function (if provided)}
+}
 }
 \description{
-These functions implement circle fitting and robust circle detection using a RANSAC-like approach.
+Fits a circle to 2D point data by minimizing the sum of squared differences
+between observed and predicted radii.
 }
 \examples{
-# Not run: See individual function documentation for examples.
-
+set.seed(42)
+theta <- runif(50, 0, 2*pi)
+x <- 5 + 3*cos(theta) + rnorm(50, sd = 0.1)
+y <- 2 + 3*sin(theta) + rnorm(50, sd = 0.1)
+xy <- cbind(x, y)
+result <- fitSS(xy)
+print(result$par)
 }

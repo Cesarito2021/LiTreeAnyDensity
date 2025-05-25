@@ -151,29 +151,27 @@ overlay_func <- function(data, number_layers, values_x, values_y, j1) {
 #' @param height Height value associated with the circle (optional)
 #'
 #' @return A list containing:
-#' \itemize{
-#'   \item{par - Numeric vector of length 3 containing (a, b, r) where:
-#'     \itemize{
-#'       \item{a - x-coordinate of fitted circle center}
-#'       \item{b - y-coordinate of fitted circle center}
-#'       \item{r - radius of fitted circle}
+#' \describe{
+#'   \item{par}{Numeric vector of length 3 containing (a, b, r), where:
+#'     \describe{
+#'       \item{a}{x-coordinate of fitted circle center}
+#'       \item{b}{y-coordinate of fitted circle center}
+#'       \item{r}{radius of fitted circle}
 #'     }
-#'   \item{height - The height value passed to the function (if provided)}
+#'   }
+#'   \item{height}{The height value passed to the function (if provided)}
 #' }
 #'
+#' @export
+#'
 #' @examples
-#' # Generate some circular data with noise
 #' set.seed(42)
 #' theta <- runif(50, 0, 2*pi)
 #' x <- 5 + 3*cos(theta) + rnorm(50, sd = 0.1)
 #' y <- 2 + 3*sin(theta) + rnorm(50, sd = 0.1)
 #' xy <- cbind(x, y)
-#'
-#' # Fit circle
 #' result <- fitSS(xy)
-#' print(result$par)  # Should be close to (5, 2, 3)
-#'
-#' @export
+#' print(result$par)
 fitSS <- function(xy, a0 = mean(xy[, 1]), b0 = mean(xy[, 2]), 
                   r0 = mean(sqrt((xy[, 1] - a0)^2 + (xy[, 2] - b0)^2)), 
                   height = NULL) {
@@ -615,8 +613,8 @@ Rasterize3DSlicesArch <- function(LasData,voxel_size){
 #' \dontrun{
 #'result <- IdentifyPotentialTreeLocationsArch(
 #'  xyz_data, RasterMetric, RasterMetricSum, RasterMetricCount,
-#'  voxel_size = 0.5
-#')
+#'  voxel_size = 0.5)
+#'}
 #'
 #  Note: no @export tag here.
 IdentifyPotentialTreeLocationsArch  <- function(xyz_data, RasterMetric, RasterMetricSum, RasterMetricCount, voxel_size) {
