@@ -15,13 +15,11 @@ fitSS(
 \arguments{
 \item{xy}{A numeric matrix or data frame with columns representing 2D coordinates (x, y) for circle fitting (used in \code{fitSS}).}
 
-\item{a0}{Initial value a0}
+\item{a0}{Initial value for circle center x-coordinate.}
 
-\item{b0}{Initial value b0}
+\item{b0}{Initial value for circle center y-coordinate.}
 
-\item{r0}{Initial value r0}
-
-\item{height}{Tree height}
+\item{r0}{Initial value for circle radius.}
 
 \item{data}{A data frame or matrix with columns \code{x}, \code{y}, and \code{z} representing 3D points (used in \code{rc} and \code{rmc}).}
 
@@ -36,7 +34,7 @@ fitSS(
 \item{max_circles}{Integer, maximum number of circles to detect (used in \code{rmc}).}
 }
 \value{
-\code{fitSS} returns a list with estimated circle parameters (center coordinates and radius).
+\code{fitSS} returns a list with estimated circle parameters: center coordinates and radius.
 \code{rc} returns the best fitted circle model found after RANSAC iterations, including the average height.
 \code{rmc} returns a list of fitted circle models detected in the data.
 }
@@ -50,8 +48,13 @@ These functions implement circle fitting and robust circle detection using a RAN
 }
 \examples{
 \dontrun{
-  single_circle <- fitSS(matrix(c(x, y), ncol=2))
+  # Example with sample points
+  xy <- matrix(runif(20), ncol=2)  # 10 random points in 2D
+  single_circle <- fitSS(xy)
+  
+  # Assuming 'data' is a data.frame with columns x, y, z
   best_circle <- rc(data, n=10, k=100, t=0.1, d=15)
   circles <- rmc(data, n=10, k=100, t=0.1, d=15, max_circles=5)
 }
+
 }

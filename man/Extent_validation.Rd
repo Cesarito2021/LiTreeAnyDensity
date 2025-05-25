@@ -18,7 +18,6 @@ A \code{RasterLayer} object with extent, resolution, and CRS aligned to \code{ra
 This function adjusts the extent, resolution, and coordinate reference system (CRS) of a raster object to match a reference raster.
 }
 \examples{
-library(raster)
 r1 <- raster(ncol=10, nrow=10)
 extent(r1) <- c(0, 10, 0, 10)
 crs(r1) <- CRS("+init=epsg:4326")

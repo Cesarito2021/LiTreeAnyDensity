@@ -16,3 +16,8 @@ utils::globalVariables(c(
   "d1_m", "dbh_cm", "g_m2", "geometry", "stem_cl",
   "i", "Z", "interval", "X", "Y"
 ))
+if (!requireNamespace("purrr", quietly = TRUE)) {
+  stop("Package 'purrr' needed but not installed.")
+}
+
+purrr::map(...)

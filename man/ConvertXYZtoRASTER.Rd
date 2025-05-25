@@ -22,7 +22,6 @@ A \code{RasterLayer} object representing the spatial distribution of the selecte
 This function converts point cloud data (x, y, z) into a raster layer based on a specified feature, such as the mean elevation or point count per cell.
 }
 \examples{
-library(raster)
 df <- data.frame(x = runif(100), y = runif(100), z = rnorm(100))
 r <- ConvertXYZtoRASTER(df, feature = "mean", resolution = 1, crs = "+init=epsg:32632")
 }

@@ -23,7 +23,6 @@ For_xyzi <- function(data){
 #' @param crs A valid coordinate reference system (CRS) object or string (e.g., EPSG code) to assign to the output raster.
 #' @return A \code{RasterLayer} object representing the spatial distribution of the selected feature.
 #' @examples
-#' library(raster)
 #' df <- data.frame(x = runif(100), y = runif(100), z = rnorm(100))
 #' r <- ConvertXYZtoRASTER(df, feature = "mean", resolution = 1, crs = "+init=epsg:32632")
 #' @export
@@ -54,7 +53,6 @@ ConvertXYZtoRASTER <- function(data, feature, resolution, crs) {
 #' @param raster_to_correct A \code{RasterLayer} object that will be resampled and aligned to match the reference raster.
 #' @return A \code{RasterLayer} object with extent, resolution, and CRS aligned to \code{raster_ref}.
 #' @examples
-#' library(raster)
 #' r1 <- raster(ncol=10, nrow=10)
 #' extent(r1) <- c(0, 10, 0, 10)
 #' crs(r1) <- CRS("+init=epsg:4326")
@@ -147,12 +145,12 @@ overlay_func <- function(data, number_layers, values_x, values_y, j1) {
 #' @param t Numeric, threshold distance to consider a point as an inlier to a circle.
 #' @param d Integer, minimum number of inliers required to accept a circle model.
 #' @param max_circles Integer, maximum number of circles to detect (used in \code{rmc}).
-#' @param a0 Initial value a0
-#' @param b0 Initial value b0
-#' @param r0 Initial value r0
-#' @param height Tree height
+#' @param a0 Initial value for circle center x-coordinate.
+#' @param b0 Initial value for circle center y-coordinate.
+#' @param r0 Initial value for circle radius.
+#' 
 #' @return
-#' \code{fitSS} returns a list with estimated circle parameters (center coordinates and radius).
+#' \code{fitSS} returns a list with estimated circle parameters: center coordinates and radius.
 #' \code{rc} returns the best fitted circle model found after RANSAC iterations, including the average height.
 #' \code{rmc} returns a list of fitted circle models detected in the data.
 #'
@@ -163,10 +161,15 @@ overlay_func <- function(data, number_layers, values_x, values_y, j1) {
 #'
 #' @examples
 #' \dontrun{
-#'   single_circle <- fitSS(matrix(c(x, y), ncol=2))
+#'   # Example with sample points
+#'   xy <- matrix(runif(20), ncol=2)  # 10 random points in 2D
+#'   single_circle <- fitSS(xy)
+#'   
+#'   # Assuming 'data' is a data.frame with columns x, y, z
 #'   best_circle <- rc(data, n=10, k=100, t=0.1, d=15)
 #'   circles <- rmc(data, n=10, k=100, t=0.1, d=15, max_circles=5)
 #' }
+#' 
 #' @export
 fitSS <- function(xy, a0 = mean(xy[, 1]), b0 = mean(xy[, 2]), r0 = mean(sqrt((xy[, 1] - a0)^2 + (xy[, 2] - b0)^2)), height) {
   SS <- function(abr) {
@@ -752,7 +755,7 @@ DetectAndMeasureTreesArch <- function(data_ref,eps_value,minPts_value,d1_m_minim
       g_m2 = round((pi * (d1_m )^2)/4,2)
     )
   # Buffer individuale per ogni geometria
-  library(purrr)
+  
   crs_val <- as.numeric(3035)
   merged_shapefile$geometry <- purrr::map2(
     merged_shapefile$geometry,
