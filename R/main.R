@@ -98,7 +98,7 @@ Rasterize3DSlices <- function(LasData,voxel_size) {
 IdentifyPotentialTreeLocations <- function(xyz_data, RasterMetric, RasterMetricSum, RasterMetricCount, voxel_size) {
   IdentifyPotentialTreeLocationsArch(xyz_data, RasterMetric, RasterMetricSum, RasterMetricCount, voxel_size)
 }
-# step 4 -  tree detection and meansuration
+
 #' Tree Detection and Diameter Measurement from 3D Point Cloud Data
 #'
 #' This function detects tree trunks and estimates their diameters using a combination of DBSCAN clustering and RANSAC-based circle fitting. It is designed for analyzing 3D point cloud data from forest environments and extracting tree-level structural metrics such as DBH and basal area.
@@ -184,7 +184,6 @@ DetectAndMeasureTrees <- function(data_ref,eps_value,minPts_value,d1_m_minimum,
 #' }
 #'
 #' @export
-
 forestry_equations <- function(result_final_base, tls_slice3) {
   
   # 1. Area of the point cloud in hectares

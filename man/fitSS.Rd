@@ -41,20 +41,7 @@ fitSS(
 \description{
 These functions implement circle fitting and robust circle detection using a RANSAC-like approach.
 }
-\details{
-\code{fitSS} fits a single circle to 2D points by minimizing squared residuals.
-\code{rc} applies a RANSAC-like method to find the best circle fitting a subset of points.
-\code{rmc} iteratively detects multiple circles by applying \code{rc} and removing inliers.
-}
 \examples{
-\dontrun{
-  # Example with sample points
-  xy <- matrix(runif(20), ncol=2)  # 10 random points in 2D
-  single_circle <- fitSS(xy)
-  
-  # Assuming 'data' is a data.frame with columns x, y, z
-  best_circle <- rc(data, n=10, k=100, t=0.1, d=15)
-  circles <- rmc(data, n=10, k=100, t=0.1, d=15, max_circles=5)
-}
+# Not run: See individual function documentation for examples.
 
 }

@@ -6,10 +6,6 @@ Author: person("Cesar Ivan", "Alvites Diaz", email = "cesar.alvites@gmail.com", 
 Maintainer: Cesar Alvites <calvites1990@gmail.com>
 Description: Un pacchetto per elaborare, analizzare e visualizzare strutture architettoniche degli alberi anche in foreste con densità variabili.
 License: GPL (>= 3)
-LicenseFile: LICENSE
-Encoding: UTF-8
-LazyData: true
-RoxygenNote: 7.3.2
 Imports:
     lidR,
     dplyr,
@@ -23,6 +19,7 @@ Imports:
     parallel,
     pracma,
     Rvcg
-    
-    
-
+Depends: R (>= 3.6.0)
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.3.2

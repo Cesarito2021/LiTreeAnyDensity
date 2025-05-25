@@ -14,6 +14,7 @@ For_xyzi <- function(data){
   i <- data[["Intensity"]]
   return(cbind(x,y,z,i))
 }
+
 #' Convert Point Cloud XYZ Data to Raster
 #'
 #' This function converts point cloud data (x, y, z) into a raster layer based on a specified feature, such as the mean elevation or point count per cell.
@@ -45,7 +46,7 @@ ConvertXYZtoRASTER <- function(data, feature, resolution, crs) {
     return(count)
   }
 }
-# step 2
+
 #' Align Raster Extent and Resolution to a Reference Raster
 #'
 #' This function adjusts the extent, resolution, and coordinate reference system (CRS) of a raster object to match a reference raster.
@@ -73,6 +74,7 @@ Extent_validation <- function(raster_ref,raster_to_correct){
   #
   return(raster_corrected)
 }
+
 #' Custom Vectorized Overlay Function
 #'
 #' This function performs a conditional check on two raster layer values and returns a modified value based on the comparison with given constants.
@@ -95,6 +97,7 @@ Extent_validation <- function(raster_ref,raster_to_correct){
 vectorized_custom_fun_bis <- function(x, y, valx, valy) {
   return(ifelse(x == as.numeric(valx) & y == as.numeric(valy), x + 1, 0))
 }
+
 #' Overlay Multiple Raster Layers with Custom Function
 #'
 #' This function performs pairwise overlay operations on a list of raster layers using a custom vectorized function. Each overlay operation applies specific values from \code{values_x} and \code{values_y} to modify the overlay result.
@@ -134,6 +137,7 @@ overlay_func <- function(data, number_layers, values_x, values_y, j1) {
   
   return(output_list)
 }
+
 #' Circle Fitting and Multiple Circle Detection in 2D Point Data
 #'
 #' These functions implement circle fitting and robust circle detection using a RANSAC-like approach.
@@ -154,22 +158,9 @@ overlay_func <- function(data, number_layers, values_x, values_y, j1) {
 #' \code{rc} returns the best fitted circle model found after RANSAC iterations, including the average height.
 #' \code{rmc} returns a list of fitted circle models detected in the data.
 #'
-#' @details
-#' \code{fitSS} fits a single circle to 2D points by minimizing squared residuals.
-#' \code{rc} applies a RANSAC-like method to find the best circle fitting a subset of points.
-#' \code{rmc} iteratively detects multiple circles by applying \code{rc} and removing inliers.
-#'
 #' @examples
-#' \dontrun{
-#'   # Example with sample points
-#'   xy <- matrix(runif(20), ncol=2)  # 10 random points in 2D
-#'   single_circle <- fitSS(xy)
-#'   
-#'   # Assuming 'data' is a data.frame with columns x, y, z
-#'   best_circle <- rc(data, n=10, k=100, t=0.1, d=15)
-#'   circles <- rmc(data, n=10, k=100, t=0.1, d=15, max_circles=5)
-#' }
-#' 
+#' # Not run: See individual function documentation for examples.
+#'
 #' @export
 fitSS <- function(xy, a0 = mean(xy[, 1]), b0 = mean(xy[, 2]), r0 = mean(sqrt((xy[, 1] - a0)^2 + (xy[, 2] - b0)^2)), height) {
   SS <- function(abr) {
@@ -180,6 +171,7 @@ fitSS <- function(xy, a0 = mean(xy[, 1]), b0 = mean(xy[, 2]), r0 = mean(sqrt((xy
   
   return(list(par = res$par))
 }
+
 #' Robust Circle Fitting Using the RANSAC Algorithm
 #'
 #' This function implements the RANSAC (Random Sample Consensus) algorithm to robustly fit a circle to 2D spatial point data (typically x and y coordinates of tree cross-sections), and estimates the average height (z) of the detected shape.
@@ -219,6 +211,7 @@ rc <- function(data, n, k, t, d) {
   bestfit$height <- mean(data[, "z"])  # Altezza media
   return(bestfit)
 }
+
 #' Multiple Circle Detection Using the RANSAC Algorithm
 #'
 #' This function detects and fits multiple circles within a 2D point cloud using the RANSAC (Random Sample Consensus) algorithm. It iteratively applies a robust fitting procedure to identify circular shapes (e.g., tree trunks) and removes inliers after each detection to allow for the next circle to be found.
@@ -256,6 +249,7 @@ rmc <- function(data, n, k, t, d, max_circles) {
   
   return(all_circles[1:found_circles])
 }
+
 #
 #' Rotate and Align LAS Point Cloud to Vertical Axis
 #'
@@ -319,6 +313,7 @@ rotate_and_align_las <- function(mesh, crs_code = 3035) {
   
   return(las)
 }
+
 #' Filter LAS Points Within the Central Area
 #'
 #' This function filters points in a LAS object to retain only those located within a central area,
@@ -358,6 +353,7 @@ filter_las_central_area <- function(las, margin_pct = 0.05) {
   
   return(las_filtered_center)
 }
+
 #' Create Circle Attributes from RANSAC Output
 #'
 #' This function generates a data frame with geometric and identifier attributes for a detected circle
@@ -419,6 +415,7 @@ create_circle_shapefile_from_ransac <- function(ransac_output, circle_id, crs, d
   #tab_circle_sf$geometry <- st_buffer(tab_circle_sf$geometry, dist=tab_circle_sf$d1_m/2)
   return(tab_circle)
 }
+
 #' Calculate Cluster Centroids and Assign Cluster IDs
 #'
 #' This function computes the centroid coordinates (mean of x, y, and z) for each cluster in a dataset
@@ -655,6 +652,7 @@ IdentifyPotentialTreeLocationsArch  <- function(xyz_data, RasterMetric, RasterMe
   # Return filtered data
   return(data_ref)
 }
+
 #' Tree Detection and Diameter Measurement from Point Cloud Data
 #'
 #' This function detects tree stems and estimates their diameters using DBSCAN clustering followed by RANSAC-based circle fitting on 3D point cloud data. It outputs an `sf` object with the estimated diameter at breast height (DBH), basal area, and stem location. This tool is designed for use in forest structure analysis from terrestrial LiDAR or photogrammetric point clouds.
