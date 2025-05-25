@@ -187,6 +187,7 @@ DetectAndMeasureTrees <- function(data_ref,eps_value,minPts_value,d1_m_minimum,
 #'   st_sfc(poly), 
 #'   crs = 3035
 #' )
+#' }
 #'
 #' @export
 forestry_equations <- function(result_final_base, tls_slice3) {

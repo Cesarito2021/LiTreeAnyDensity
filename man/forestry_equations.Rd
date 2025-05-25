@@ -30,3 +30,20 @@ plot boundary.
 The tree volume is estimated using a generic allometric equation based on DBH:
 \eqn{V = a \cdot \mathrm{DBH}^b} where \eqn{a = 0.0001078} and \eqn{b = 2.56}.
 }
+\examples{
+\dontrun{
+# Example usage
+library(sf)
+poly_coords <- rbind(
+  c(0,0), c(0,10), 
+  c(10,10), c(10,0),
+  c(0,0)
+)
+poly <- st_polygon(list(poly_coords))
+tls_slice3 <- st_as_sf(
+  st_sfc(poly), 
+  crs = 3035
+)
+}
+
+}
