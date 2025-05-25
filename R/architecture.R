@@ -432,7 +432,8 @@ calculate_cluster_centroids <- function(data, cluster_labels) {
   return(cluster_points_table)
 }
 
-
+#' Internal function for Slice3DByHeightArch
+#' @noRd
 Slice3DByHeightArch <- function(LasData,Z_mininum,Z_maximum,voxel_size){
   # cut the horizontal slices
   filtered_tree_slice<- filter_poi(LasData, Z>Z_mininum & Z <Z_maximum)
@@ -459,6 +460,8 @@ Slice3DByHeightArch <- function(LasData,Z_mininum,Z_maximum,voxel_size){
   LasData  <- multi_slices%>% group_split(interval)
   #
   return(list(LasData,xyz_data))}
+#' Internal function for Rasterize3DSlicesArch
+#' @noRd
 Rasterize3DSlicesArch <- function(LasData,voxel_size){
   #-------------------------------------------------
   #-------------------------------------------------
@@ -484,6 +487,8 @@ Rasterize3DSlicesArch <- function(LasData,voxel_size){
   #
   return(list(RasterMetric,RasterMetricSum,RasterMetricCount))
 }
+#' Internal function for IdentifyPotentialTreeLocationsArch
+#' @noRd
 IdentifyPotentialTreeLocationsArch  <- function(xyz_data, RasterMetric, RasterMetricSum, RasterMetricCount, voxel_size) {
   # Define values for each case
   layers_params <- list(
@@ -544,6 +549,8 @@ IdentifyPotentialTreeLocationsArch  <- function(xyz_data, RasterMetric, RasterMe
   # Return filtered data
   return(data_ref)
 }
+#' Internal function for DetectAndMeasureTreesArch
+#' @noRd
 DetectAndMeasureTreesArch <- function(data_ref,eps_value,minPts_value,d1_m_minimum,
                                       d1_m_maximum, n_ransac_par, k_ransac_par,
                                       t_ransac_par, d_ransac_par){
