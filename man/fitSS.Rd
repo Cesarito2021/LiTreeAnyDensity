@@ -15,6 +15,14 @@ fitSS(
 \arguments{
 \item{xy}{A numeric matrix or data frame with columns representing 2D coordinates (x, y) for circle fitting (used in \code{fitSS}).}
 
+\item{a0}{Initial value a0}
+
+\item{b0}{Initial value b0}
+
+\item{r0}{Initial value r0}
+
+\item{height}{Tree height}
+
 \item{data}{A data frame or matrix with columns \code{x}, \code{y}, and \code{z} representing 3D points (used in \code{rc} and \code{rmc}).}
 
 \item{n}{Integer, minimum number of points used to fit a circle in each iteration.}

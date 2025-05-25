@@ -6,6 +6,7 @@
 #' @examples
 #' pc_data <- data.frame(X = runif(10), Y = runif(10), Z = runif(10), Intensity = runif(10))
 #' For_xyzi(pc_data)
+#' @export
 For_xyzi <- function(data){
   x <- data[["X"]]
   y <- data[["Y"]]
@@ -25,6 +26,7 @@ For_xyzi <- function(data){
 #' library(raster)
 #' df <- data.frame(x = runif(100), y = runif(100), z = rnorm(100))
 #' r <- ConvertXYZtoRASTER(df, feature = "mean", resolution = 1, crs = "+init=epsg:32632")
+#' @export
 ConvertXYZtoRASTER <- function(data, feature, resolution, crs) {
   if (feature == "mean") {
     ext <- raster::extent(data[, c("x", "y")])
@@ -60,6 +62,7 @@ ConvertXYZtoRASTER <- function(data, feature, resolution, crs) {
 #' extent(r2) <- c(1, 6, 1, 6)
 #' crs(r2) <- CRS("+init=epsg:3857")
 #' r_corrected <- Extent_validation(r1, r2)
+#' @export
 Extent_validation <- function(raster_ref,raster_to_correct){
   #
   ref_extent <- extent(raster_ref)
@@ -90,6 +93,7 @@ Extent_validation <- function(raster_ref,raster_to_correct){
 #' y <- c(5, 2, 3, 4)
 #' vectorized_custom_fun_bis(x, y, valx = 3, valy = 3)
 #' # Returns: 0 0 4 0
+#' @export
 vectorized_custom_fun_bis <- function(x, y, valx, valy) {
   return(ifelse(x == as.numeric(valx) & y == as.numeric(valy), x + 1, 0))
 }
@@ -110,6 +114,7 @@ vectorized_custom_fun_bis <- function(x, y, valx, valy) {
 #' @examples
 #' # Example not run because it requires pre-defined raster layers and vectorized_custom_fun_bis
 #' # result <- overlay_func(data_list, number_layers = 5, values_x = rep(1, 5), values_y = rep(2, 5), j1 = c(2, 3, 4, 5, 1))
+#' @export
 overlay_func <- function(data, number_layers, values_x, values_y, j1) {
   output_list <- vector("list", number_layers)
   
@@ -142,7 +147,10 @@ overlay_func <- function(data, number_layers, values_x, values_y, j1) {
 #' @param t Numeric, threshold distance to consider a point as an inlier to a circle.
 #' @param d Integer, minimum number of inliers required to accept a circle model.
 #' @param max_circles Integer, maximum number of circles to detect (used in \code{rmc}).
-#'
+#' @param a0 Initial value a0
+#' @param b0 Initial value b0
+#' @param r0 Initial value r0
+#' @param height Tree height
 #' @return
 #' \code{fitSS} returns a list with estimated circle parameters (center coordinates and radius).
 #' \code{rc} returns the best fitted circle model found after RANSAC iterations, including the average height.
@@ -159,6 +167,7 @@ overlay_func <- function(data, number_layers, values_x, values_y, j1) {
 #'   best_circle <- rc(data, n=10, k=100, t=0.1, d=15)
 #'   circles <- rmc(data, n=10, k=100, t=0.1, d=15, max_circles=5)
 #' }
+#' @export
 fitSS <- function(xy, a0 = mean(xy[, 1]), b0 = mean(xy[, 2]), r0 = mean(sqrt((xy[, 1] - a0)^2 + (xy[, 2] - b0)^2)), height) {
   SS <- function(abr) {
     sum((abr[3] - sqrt((xy[, 1] - abr[1])^2 + (xy[, 2] - abr[2])^2))^2)
@@ -168,6 +177,19 @@ fitSS <- function(xy, a0 = mean(xy[, 1]), b0 = mean(xy[, 2]), r0 = mean(sqrt((xy
   
   return(list(par = res$par))
 }
+#' Robust Circle Fitting Using the RANSAC Algorithm
+#'
+#' This function implements the RANSAC (Random Sample Consensus) algorithm to robustly fit a circle to 2D spatial point data (typically x and y coordinates of tree cross-sections), and estimates the average height (z) of the detected shape.
+#'
+#' @param data A data frame containing at least the columns `x`, `y`, and `z`, representing the 3D coordinates of the points.
+#' @param n An integer specifying the minimum number of points required to fit a model (typically 3 for a circle).
+#' @param k An integer indicating the maximum number of iterations allowed in the RANSAC algorithm.
+#' @param t A numeric threshold value to determine whether a point fits the model (distance tolerance).
+#' @param d An integer specifying the minimum number of inliers required to consider a model valid.
+#'
+#' @return A list representing the best-fit circle model with components `par` (center x, y, and radius), and `height` (mean z-value of the input points).
+#' @details The function uses a custom fitting method `fitSS()` to estimate the parameters of a circle from sampled inliers. The model with the lowest average residual error is selected. The mean height (`z`) of all input points is returned as an additional attribute.
+#' @export
 rc <- function(data, n, k, t, d) {
   bestfit <- NULL
   besterr <- Inf
@@ -194,6 +216,20 @@ rc <- function(data, n, k, t, d) {
   bestfit$height <- mean(data[, "z"])  # Altezza media
   return(bestfit)
 }
+#' Multiple Circle Detection Using the RANSAC Algorithm
+#'
+#' This function detects and fits multiple circles within a 2D point cloud using the RANSAC (Random Sample Consensus) algorithm. It iteratively applies a robust fitting procedure to identify circular shapes (e.g., tree trunks) and removes inliers after each detection to allow for the next circle to be found.
+#'
+#' @param data A data frame containing at least the columns `x`, `y`, and `z`, representing the 3D coordinates of the points.
+#' @param n An integer specifying the minimum number of points required to fit a model (typically 3 for a circle).
+#' @param k An integer indicating the maximum number of iterations allowed in each RANSAC cycle.
+#' @param t A numeric threshold that determines whether a point is considered an inlier based on its distance to the circle.
+#' @param d An integer specifying the minimum number of inliers required for a circle to be considered valid.
+#' @param max_circles Maximum number of circles to detect in the point cloud.
+#'
+#' @return A list of circle models, each containing the fitted parameters (`par` = center x, center y, radius) and the average height (`height`) of the points that belong to that circle.
+#' @details This function calls \code{rc()} internally for each circle to be detected. After each valid detection, inlier points are removed to allow detection of additional non-overlapping circles.
+#' @export
 rmc <- function(data, n, k, t, d, max_circles) {
   all_circles <- vector("list", max_circles)
   remaining_points <- data
@@ -238,6 +274,7 @@ rmc <- function(data, n, k, t, d, max_circles) {
 #' \dontrun{
 #'   las_aligned <- rotate_and_align_las(mesh_object)
 #' }
+#' @export
 rotate_and_align_las <- function(mesh, crs_code = 3035) {
   # 1. Estrai vertici dal mesh e crea data.frame
   vertices <- t(mesh$vb[1:3, ])
@@ -297,6 +334,7 @@ rotate_and_align_las <- function(mesh, crs_code = 3035) {
 #' \dontrun{
 #'   las_center <- filter_las_central_area(las_object, margin_pct = 0.1)
 #' }
+#' @export
 filter_las_central_area <- function(las, margin_pct = 0.05) {
   # Calcola limiti XY
   xrange <- range(las@data$X)
@@ -342,6 +380,7 @@ filter_las_central_area <- function(las, margin_pct = 0.05) {
 #'                                               d1_m_maximum = 10,
 #'                                               n_points = 50)
 #' }
+#' @export
 create_circle_shapefile_from_ransac <- function(ransac_output, circle_id, crs, d1_m_minimum, d1_m_maximum, n_points) {
   # Check if the required elements are present
   if (is.null(ransac_output$par) || length(ransac_output$par) < 3) {
@@ -395,7 +434,7 @@ create_circle_shapefile_from_ransac <- function(ransac_output, circle_id, crs, d
 #'  labels <- c(1,1,2,2,1,3,3,2,1,3)
 #'  result <- calculate_cluster_centroids(pts, labels)
 #' }
-
+#' @export
 calculate_cluster_centroids <- function(data, cluster_labels) {
   # Calculate centroids
   centroids <- lapply(unique(cluster_labels), function(label) {
@@ -432,8 +471,29 @@ calculate_cluster_centroids <- function(data, cluster_labels) {
   return(cluster_points_table)
 }
 
-#' Internal function for Slice3DByHeightArch
-#' @noRd
+#' Slice 3D Point Cloud by Height Intervals
+#'
+#' This function slices a 3D LiDAR point cloud into multiple horizontal layers within a specified height range and voxel size. It is typically used in forestry applications to analyze structural features such as tree architecture at different vertical strata.
+#'
+#' @param LasData A LAS object or data frame containing 3D point cloud data, including at least the coordinates `x`, `y`, and `z`.
+#' @param Z_mininum A numeric value indicating the minimum height (Z) threshold for filtering the point cloud.
+#' @param Z_maximum A numeric value indicating the maximum height (Z) threshold for filtering the point cloud.
+#' @param voxel_size A numeric value specifying the resolution (in meters) for both vertical and horizontal slicing (voxel height and width).
+#'
+#' @return A list with two elements: 
+#' \itemize{
+#'   \item A list of data frames representing the sliced horizontal layers of the point cloud.
+#'   \item A data frame containing the filtered `x`, `y`, and `z` coordinates used for slicing.
+#' }
+#'
+#' @examples
+#' \dontrun{
+#' # Assuming `las` is a loaded LAS file object
+#' result <- Slice3DByHeightArch(las, Z_mininum = 2, Z_maximum = 20, voxel_size = 0.5)
+#' slices <- result[[1]]
+#' xyz_data <- result[[2]]
+#' }
+#  Note: no @export tag here.
 Slice3DByHeightArch <- function(LasData,Z_mininum,Z_maximum,voxel_size){
   # cut the horizontal slices
   filtered_tree_slice<- filter_poi(LasData, Z>Z_mininum & Z <Z_maximum)
@@ -460,8 +520,31 @@ Slice3DByHeightArch <- function(LasData,Z_mininum,Z_maximum,voxel_size){
   LasData  <- multi_slices%>% group_split(interval)
   #
   return(list(LasData,xyz_data))}
-#' Internal function for Rasterize3DSlicesArch
-#' @noRd
+
+#' Rasterization of 3D Sliced Point Cloud Data
+#'
+#' This function rasterizes a list of 3D point cloud slices (e.g., horizontal layers of a tree canopy)
+#' and computes spatial metrics such as the number of occupied voxels and the sum of values across slices.
+#' It is designed for use in forest structure analysis from LiDAR data.
+#'
+#' @param LasData A list of data frames, each containing 3D point cloud data (columns: `x`, `y`, `z`) 
+#' representing slices of the original point cloud (e.g., from \code{Slice3DByHeightArch}).
+#' @param voxel_size A numeric value specifying the spatial resolution (in meters) of the output rasters.
+#'
+#' @return A list containing:
+#' \itemize{
+#'   \item \code{RasterMetric}: A list of binary rasters indicating occupied voxels in each slice.
+#'   \item \code{RasterMetricSum}: A raster showing the total number of layers each pixel was occupied.
+#'   \item \code{RasterMetricCount}: A raster showing the sum of point values across all slices.
+#' }
+#'
+#' @examples
+#' \dontrun{
+#' # Assuming 'sliced_data' is the output from Slice3DByHeightArch
+#' voxel_results <- Rasterize3DSlicesArch(sliced_data[[1]], voxel_size = 0.5)
+#' plot(voxel_results[[2]])  # RasterMetricSum
+#' }
+#  Note: no @export tag here.
 Rasterize3DSlicesArch <- function(LasData,voxel_size){
   #-------------------------------------------------
   #-------------------------------------------------
@@ -487,8 +570,28 @@ Rasterize3DSlicesArch <- function(LasData,voxel_size){
   #
   return(list(RasterMetric,RasterMetricSum,RasterMetricCount))
 }
-#' Internal function for IdentifyPotentialTreeLocationsArch
-#' @noRd
+
+#' Identification of Potential Tree Stem Locations from Rasterized Point Cloud Metrics
+#'
+#' This function identifies potential tree stem positions from a raster stack derived from 3D point cloud slices.
+#' It evaluates voxel metrics across multiple canopy layers to detect persistent vertical structures, 
+#' applying spatial filtering and thresholding to locate likely stem base positions.
+#'
+#' @param xyz_data A data frame with columns \code{x}, \code{y}, and \code{z}, representing 3D coordinates of the original point cloud.
+#' @param RasterMetric A list of binary rasters indicating voxel occupancy for each canopy layer (e.g., from \code{Rasterize3DSlicesArch}).
+#' @param RasterMetricSum A raster representing the number of occupied layers per pixel.
+#' @param RasterMetricCount A raster representing the total point count across all layers per pixel.
+#' @param voxel_size A numeric value indicating the voxel resolution used to compute the raster metrics (in meters).
+#'
+#' @return A data frame of filtered 3D points representing potential tree stem base locations.
+#'
+#' @examples
+#' \dontrun{
+#' # Assuming you already have output from Rasterize3DSlicesArch and 3D point cloud data:
+#' result <- IdentifyPotentialTreeLocationsArch(xyz_data, RasterMetric, RasterMetricSum, RasterMetricCount, voxel_size = 0.5)
+#' head(result)
+#' }
+#  Note: no @export tag here.
 IdentifyPotentialTreeLocationsArch  <- function(xyz_data, RasterMetric, RasterMetricSum, RasterMetricCount, voxel_size) {
   # Define values for each case
   layers_params <- list(
@@ -549,8 +652,33 @@ IdentifyPotentialTreeLocationsArch  <- function(xyz_data, RasterMetric, RasterMe
   # Return filtered data
   return(data_ref)
 }
-#' Internal function for DetectAndMeasureTreesArch
-#' @noRd
+#' Tree Detection and Diameter Measurement from Point Cloud Data
+#'
+#' This function detects tree stems and estimates their diameters using DBSCAN clustering followed by RANSAC-based circle fitting on 3D point cloud data. It outputs an `sf` object with the estimated diameter at breast height (DBH), basal area, and stem location. This tool is designed for use in forest structure analysis from terrestrial LiDAR or photogrammetric point clouds.
+#'
+#' @param data_ref A data frame containing 3D coordinates (x, y, z) of point cloud data.
+#' @param eps_value The epsilon parameter for the DBSCAN clustering algorithm, defining the neighborhood radius.
+#' @param minPts_value The minimum number of points required to form a dense region in DBSCAN.
+#' @param d1_m_minimum Minimum accepted DBH (in meters) for filtering detected stems.
+#' @param d1_m_maximum Maximum accepted DBH (in meters) for filtering detected stems.
+#' @param n_ransac_par The minimum number of points in a cluster required to apply RANSAC.
+#' @param k_ransac_par The number of RANSAC iterations.
+#' @param t_ransac_par The threshold distance to determine inliers during RANSAC fitting.
+#' @param d_ransac_par The distance threshold for merging or validating detected shapes.
+#'
+#' @return An `sf` object (EPSG:3035) containing polygons of detected stem cross-sections with columns: `id` (cluster ID), `dbh_cm` (diameter in cm), `g_m2` (basal area in m²), and `geometry` (buffered stem cross-section).
+#'
+#' @examples
+#' \dontrun{
+#' data_ref <- data.frame(x = runif(100), y = runif(100), z = runif(100))
+#' result <- DetectAndMeasureTreesArch(data_ref, eps_value = 0.3, minPts_value = 10,
+#'                                     d1_m_minimum = 0.05, d1_m_maximum = 1.0,
+#'                                     n_ransac_par = 30, k_ransac_par = 100,
+#'                                     t_ransac_par = 0.01, d_ransac_par = 0.05)
+#' plot(result["dbh_cm"])
+#' }
+#'
+#  Note: no @export tag here.
 DetectAndMeasureTreesArch <- function(data_ref,eps_value,minPts_value,d1_m_minimum,
                                       d1_m_maximum, n_ransac_par, k_ransac_par,
                                       t_ransac_par, d_ransac_par){
@@ -643,3 +771,4 @@ DetectAndMeasureTreesArch <- function(data_ref,eps_value,minPts_value,d1_m_minim
   
   return(merged_shapefile)
 }
+
