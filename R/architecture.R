@@ -139,38 +139,63 @@ overlay_func <- function(data, number_layers, values_x, values_y, j1) {
   return(output_list)
 }
 
-#' Circle Fitting and Multiple Circle Detection in 2D Point Data
+#' Circle Fitting using Sum of Squares Optimization
 #'
-#' These functions implement circle fitting and robust circle detection using a RANSAC-like approach.
+#' Fits a circle to 2D point data by minimizing the sum of squared differences
+#' between observed and predicted radii.
 #'
-#' @param xy A numeric matrix or data frame with columns representing 2D coordinates (x, y) for circle fitting (used in \code{fitSS}).
-#' @param data A data frame or matrix with columns \code{x}, \code{y}, and \code{z} representing 3D points (used in \code{rc} and \code{rmc}).
-#' @param n Integer, minimum number of points used to fit a circle in each iteration.
-#' @param k Integer, maximum number of iterations for circle detection.
-#' @param t Numeric, threshold distance to consider a point as an inlier to a circle.
-#' @param d Integer, minimum number of inliers required to accept a circle model.
-#' @param max_circles Integer, maximum number of circles to detect (used in \code{rmc}).
-#' @param a0 Initial value for circle center x-coordinate.
-#' @param b0 Initial value for circle center y-coordinate.
-#' @param r0 Initial value for circle radius.
-#' 
-#' @return
-#' \code{fitSS} returns a list with estimated circle parameters: center coordinates and radius.
-#' \code{rc} returns the best fitted circle model found after RANSAC iterations, including the average height.
-#' \code{rmc} returns a list of fitted circle models detected in the data.
+#' @param xy A numeric matrix or data frame with columns representing 2D coordinates (x, y)
+#' @param a0 Initial x-coordinate for circle center (default: mean of x values)
+#' @param b0 Initial y-coordinate for circle center (default: mean of y values)
+#' @param r0 Initial radius estimate (default: mean distance from initial center)
+#' @param height Height value associated with the circle (optional)
+#'
+#' @return A list containing:
+#' \itemize{
+#'   \item{par - Numeric vector of length 3 containing (a, b, r) where:
+#'     \itemize{
+#'       \item{a - x-coordinate of fitted circle center}
+#'       \item{b - y-coordinate of fitted circle center}
+#'       \item{r - radius of fitted circle}
+#'     }
+#'   \item{height - The height value passed to the function (if provided)}
+#' }
 #'
 #' @examples
-#' # Not run: See individual function documentation for examples.
+#' # Generate some circular data with noise
+#' set.seed(42)
+#' theta <- runif(50, 0, 2*pi)
+#' x <- 5 + 3*cos(theta) + rnorm(50, sd = 0.1)
+#' y <- 2 + 3*sin(theta) + rnorm(50, sd = 0.1)
+#' xy <- cbind(x, y)
+#'
+#' # Fit circle
+#' result <- fitSS(xy)
+#' print(result$par)  # Should be close to (5, 2, 3)
 #'
 #' @export
-fitSS <- function(xy, a0 = mean(xy[, 1]), b0 = mean(xy[, 2]), r0 = mean(sqrt((xy[, 1] - a0)^2 + (xy[, 2] - b0)^2)), height) {
+fitSS <- function(xy, a0 = mean(xy[, 1]), b0 = mean(xy[, 2]), 
+                  r0 = mean(sqrt((xy[, 1] - a0)^2 + (xy[, 2] - b0)^2)), 
+                  height = NULL) {
+  
+  # Input validation
+  if (!is.matrix(xy) && !is.data.frame(xy)) {
+    stop("xy must be a matrix or data frame")
+  }
+  if (ncol(xy) < 2) {
+    stop("xy must have at least 2 columns for x and y coordinates")
+  }
+  
+  # Sum of squares function to minimize
   SS <- function(abr) {
     sum((abr[3] - sqrt((xy[, 1] - abr[1])^2 + (xy[, 2] - abr[2])^2))^2)
   }
   
-  res <- optim(c(a0, b0, r0), SS, method = "Nelder-Mead")  # Cambiato L-BFGS-B a Nelder-Mead
+  # Optimize using Nelder-Mead method
+  res <- optim(c(a0, b0, r0), SS, method = "Nelder-Mead")
   
-  return(list(par = res$par))
+  # Return results including height if provided
+  return(list(par = res$par, height = height))
 }
 
 #' Robust Circle Fitting Using the RANSAC Algorithm
