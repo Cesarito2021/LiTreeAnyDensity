@@ -54,6 +54,7 @@ ConvertXYZtoRASTER <- function(data, feature, resolution, crs) {
 #' @param raster_to_correct A \code{RasterLayer} object that will be resampled and aligned to match the reference raster.
 #' @return A \code{RasterLayer} object with extent, resolution, and CRS aligned to \code{raster_ref}.
 #' @examples
+#' library(raster)  
 #' r1 <- raster(ncol=10, nrow=10)
 #' extent(r1) <- c(0, 10, 0, 10)
 #' crs(r1) <- CRS("+init=epsg:4326")
@@ -587,10 +588,11 @@ Rasterize3DSlicesArch <- function(LasData,voxel_size){
 #'
 #' @examples
 #' \dontrun{
-#' # Assuming you already have output from Rasterize3DSlicesArch and 3D point cloud data:
-#' result <- IdentifyPotentialTreeLocationsArch(xyz_data, RasterMetric, RasterMetricSum, RasterMetricCount, voxel_size = 0.5)
-#' head(result)
-#' }
+#'result <- IdentifyPotentialTreeLocationsArch(
+#'  xyz_data, RasterMetric, RasterMetricSum, RasterMetricCount,
+#'  voxel_size = 0.5
+#')
+#'
 #  Note: no @export tag here.
 IdentifyPotentialTreeLocationsArch  <- function(xyz_data, RasterMetric, RasterMetricSum, RasterMetricCount, voxel_size) {
   # Define values for each case
