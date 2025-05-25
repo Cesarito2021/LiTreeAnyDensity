@@ -1,0 +1,11 @@
+Package: LiTreeAnyDensity
+Type: Package
+Title: 3D Point Cloud Analysis for Forestry Purposes
+Version: 0.1.0
+Author: Cesar Alvites [aut, cre]
+Maintainer: Cesar Alvites <calvites1990@gmail.com>
+Description: Un pacchetto per elaborare, analizzare e visualizzare strutture architettoniche degli alberi anche in foreste con densità variabili.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+
