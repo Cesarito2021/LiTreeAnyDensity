@@ -27,6 +27,13 @@ This function performs pairwise overlay operations on a list of raster layers us
 The function assumes the existence of an external function named \code{vectorized_custom_fun_bis}, which defines the overlay behavior between two raster layers and uses the parameters \code{valx} and \code{valy}.
 }
 \examples{
-# Example not run because it requires pre-defined raster layers and vectorized_custom_fun_bis
-# result <- overlay_func(data_list, number_layers = 5, values_x = rep(1, 5), values_y = rep(2, 5), j1 = c(2, 3, 4, 5, 1))
+\dontrun{
+result <- overlay_func(
+  data_list,
+  number_layers = 5,
+  values_x = rep(1, 5),
+  values_y = rep(2, 5),
+  j1 = c(2, 3, 4, 5, 1)
+)
+}
 }
