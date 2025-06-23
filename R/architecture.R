@@ -346,7 +346,7 @@ rotate_and_align_las_method1 <- function(mesh, crs_code = 3035) {
   rotate_and_align_las_Arch1(mesh, crs_code)
 }
 
-
+#  Note: no @export tag here.
 rotate_and_align_las_Arch1 <- function(mesh, crs_code = 3035) {
   vertices <- t(mesh$vb[1:3, ])
   colnames(vertices) <- c("X", "Y", "Z")
@@ -407,7 +407,7 @@ rotate_and_align_las_method2 <- function(mesh, crs_code = 3035) {
   rotate_and_align_las_Arch2(mesh, crs_code)
 }
 
-
+#  Note: no @export tag here.
 rotate_and_align_las_Arch2 <- function(ply, crs_code = 3035) {
   coords <- t(ply$vb[1:3, , drop = FALSE])
   colnames(coords) <- c("X", "Y", "Z")
