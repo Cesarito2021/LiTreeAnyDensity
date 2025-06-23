@@ -281,69 +281,155 @@ rmc <- function(data, n, k, t, d, max_circles) {
   return(all_circles[1:found_circles])
 }
 
-#
-#' Rotate and Align LAS Point Cloud to Vertical Axis
+#' Rotate and Align LAS Point Cloud (Wrapper Function)
+#'
+#' This function provides a unified interface to rotate and align a 3D mesh point cloud using one of two available methods.
+#' The goal is to reorient the point cloud so that the main planar surface (usually the ground or horizontal base) becomes aligned with the vertical Z-axis.
+#'
+#' @param mesh A mesh object from a `.ply` file, containing a `vb` component with 3D vertex coordinates.
+#' @param crs_code Numeric or character. Coordinate Reference System (CRS) code to assign to the output LAS object. Default is EPSG:3035.
+#' @param method Integer. Selects the rotation method to apply:
+#'   \itemize{
+#'     \item \code{1} = PCA-based alignment using the lowest 5% of points (ground-based rotation).
+#'     \item \code{2} = PCA alignment of the entire centered point cloud (global variance-based rotation).
+#'   }
+#'
+#' @return A LAS object with rotated and aligned coordinates, and optional CRS assignment.
+#'
+#' @details
+#' \strong{Method 1:} Uses Principal Component Analysis (PCA) on the lowest 5% of Z-values (assumed ground points),
+#' then applies Rodrigues' rotation formula to align the normal vector of the estimated plane to the Z-axis.
+#'
+#' \strong{Method 2:} Centers the full point cloud, performs PCA, and applies the resulting rotation matrix to align the major axis of variation to the Z-axis.
+#'
+#' Use Method 1 when the base of the object (e.g., ground) is clearly flat and distinguishable.
+#' Use Method 2 when the point cloud is more abstract, symmetric, or lacks a clear ground reference.
+#'
+#' @examples
+#' \dontrun{
+#' mesh <- vcgPlyRead("path/to/mesh.ply", updateNormals = TRUE)
+#' las_rotated <- rotate_and_align_las(mesh, method = 1)
+#' }
+#'
+#' @export
+rotate_and_align_las <- function(mesh, crs_code = 3035, method = 1) {
+  if (method == 1) {
+    rotate_and_align_las_method1(mesh, crs_code)
+  } else if (method == 2) {
+    rotate_and_align_las_method2(mesh, crs_code)
+  } else {
+    stop("Invalid method. Please choose method = 1 or method = 2.")
+  }
+}
+
+#' Rotate and Align LAS Point Cloud (Method 1: Ground-Based PCA)
 #'
 #' This function rotates a 3D mesh represented by a LAS point cloud object so that its lowest surface points
 #' are aligned with the vertical (Z) axis. It applies Principal Component Analysis (PCA) on the lowest 5th percentile
-#' of points to estimate the normal vector, then uses Rodrigues' rotation formula to realign the mesh.
+#' of elevation values to estimate the ground normal, then uses Rodrigues' rotation formula to align the point cloud.
 #'
 #' @param mesh A mesh object containing vertex data, expected to have a component \code{vb} with 3D coordinates.
-#' @param crs_code Numeric or character representing the Coordinate Reference System (CRS) code to assign to the LAS object. Default is EPSG:3035.
+#' @param crs_code EPSG code for the Coordinate Reference System (CRS) to assign to the LAS object. Default is 3035.
 #'
-#' @return A LAS object with rotated and vertically aligned coordinates, with updated CRS and basic classification fields.
+#' @return A LAS object with rotated and vertically aligned coordinates, with CRS and classification fields assigned.
 #'
 #' @details
-#' The function extracts vertex coordinates from the mesh, constructs a LAS object, estimates the ground plane via PCA on
-#' the lowest 5% Z values, calculates the rotation matrix to align the ground plane normal to the vertical axis,
-#' applies the rotation, and repositions the point cloud so the minimum Z is zero.
-#' 
+#' This method is suited for terrestrial or ground-based point clouds where the lowest points are assumed to represent
+#' the ground. It uses PCA on these points to determine the dominant plane and rotates the point cloud accordingly.
+#'
 #' @examples
 #' \dontrun{
-#'   las_aligned <- rotate_and_align_las(mesh_object)
+#' las_aligned <- rotate_and_align_las_method1(mesh)
 #' }
 #' @export
-rotate_and_align_las <- function(mesh, crs_code = 3035) {
-  # 1. Estrai vertici dal mesh e crea data.frame
+rotate_and_align_las_method1 <- function(mesh, crs_code = 3035) {
+  rotate_and_align_las_Arch1(mesh, crs_code)
+}
+
+
+rotate_and_align_las_Arch1 <- function(mesh, crs_code = 3035) {
   vertices <- t(mesh$vb[1:3, ])
   colnames(vertices) <- c("X", "Y", "Z")
   vertices <- as.data.frame(vertices)
   
-  # 2. Crea LAS e assegna CRS
   suppressMessages(las <- LAS(vertices))
   sf::st_crs(las) <- sf::st_crs(crs_code)
   
-  # 3. Seleziona punti bassi (5° percentile Z) per PCA
   low_points <- las@data[las@data$Z <= quantile(las@data$Z, 0.05), ]
-  pca <- prcomp(low_points[, c("X","Y","Z")])
-  normal_vector <- pca$rotation[,3]
+  pca <- prcomp(low_points[, c("X", "Y", "Z")])
+  normal_vector <- pca$rotation[, 3]
   
-  # 4. Calcola matrice di rotazione (Rodrigues) per allineare normale a vettore Z
-  target <- c(0,0,1)
+  target <- c(0, 0, 1)
   v <- pracma::cross(normal_vector, target)
   s <- sqrt(sum(v^2))
   c <- sum(normal_vector * target)
+  
   vx <- matrix(c(0, -v[3], v[2],
                  v[3], 0, -v[1],
                  -v[2], v[1], 0), 3, 3, byrow = TRUE)
-  R <- diag(3) + vx + vx %*% vx * ((1 - c)/(s^2))
+  R <- diag(3) + vx + vx %*% vx * ((1 - c) / (s^2))
   
-  # 5. Applica rotazione e riallinea Z a 0
-  coords <- as.matrix(las@data[, c("X","Y","Z")])
+  coords <- as.matrix(las@data[, c("X", "Y", "Z")])
   coords_rot <- t(R %*% t(coords))
-  coords_rot[,3] <- coords_rot[,3] - min(coords_rot[,3])
+  coords_rot[, 3] <- coords_rot[, 3] - min(coords_rot[, 3])
   
-  # 6. Aggiorna dati LAS
-  las@data$X <- coords_rot[,1]
-  las@data$Y <- coords_rot[,2]
-  las@data$Z <- coords_rot[,3]
-  
-  # 7. Imposta classificazione base
+  las@data$X <- coords_rot[, 1]
+  las@data$Y <- coords_rot[, 2]
+  las@data$Z <- coords_rot[, 3]
   las@data$ReturnNumber <- 1L
   las@data$NumberOfReturns <- 1L
   
   return(las)
 }
+
+
+#' Rotate and Align LAS Point Cloud (Method 2: Global PCA-Based)
+#'
+#' This function rotates a 3D mesh by applying PCA on the entire centered point cloud to align
+#' the axes of variation. It is useful for objects where orientation is not defined by ground points
+#' but by overall geometry (e.g., indoor scans or artifacts).
+#'
+#' @param mesh A mesh object containing vertex data, expected to have a component \code{vb} with 3D coordinates.
+#' @param crs_code EPSG code for the Coordinate Reference System (CRS) to assign to the LAS object. Default is 3035.
+#'
+#' @return A LAS object with globally aligned coordinates using PCA.
+#'
+#' @details
+#' The function reorders axes (X, Z, Y → X, Y, Z), centers the coordinates, performs PCA,
+#' and rotates the point cloud using the PCA rotation matrix. This is useful when no clear ground is present.
+#'
+#' @examples
+#' \dontrun{
+#' las_aligned <- rotate_and_align_las_method2(mesh)
+#' }
+#' @export
+rotate_and_align_las_method2 <- function(mesh, crs_code = 3035) {
+  rotate_and_align_las_Arch2(mesh, crs_code)
+}
+
+
+rotate_and_align_las_Arch2 <- function(ply, crs_code = 3035) {
+  coords <- t(ply$vb[1:3, , drop = FALSE])
+  colnames(coords) <- c("X", "Y", "Z")
+  coords <- coords[, c("X", "Z", "Y")]
+  colnames(coords) <- c("X", "Y", "Z")
+  
+  coords_centered <- scale(coords, center = TRUE, scale = FALSE)
+  points_df <- as.data.table(coords_centered)
+  las <- LAS(points_df)
+  sf::st_crs(las) <- sf::st_crs(crs_code)
+  
+  pca <- prcomp(coords_centered)
+  rot_mat <- pca$rotation
+  rotated_coords <- coords_centered %*% rot_mat
+  
+  las@data$X <- round(rotated_coords[, 1], 3)
+  las@data$Y <- round(rotated_coords[, 2], 3)
+  las@data$Z <- round(rotated_coords[, 3], 3)
+  
+  return(las)
+}
+
 
 #' Filter LAS Points Within the Central Area
 #'

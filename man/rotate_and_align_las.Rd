@@ -2,30 +2,41 @@
 % Please edit documentation in R/architecture.R
 \name{rotate_and_align_las}
 \alias{rotate_and_align_las}
-\title{Rotate and Align LAS Point Cloud to Vertical Axis}
+\title{Rotate and Align LAS Point Cloud (Wrapper Function)}
 \usage{
-rotate_and_align_las(mesh, crs_code = 3035)
+rotate_and_align_las(mesh, crs_code = 3035, method = 1)
 }
 \arguments{
-\item{mesh}{A mesh object containing vertex data, expected to have a component \code{vb} with 3D coordinates.}
+\item{mesh}{A mesh object from a `.ply` file, containing a `vb` component with 3D vertex coordinates.}
 
-\item{crs_code}{Numeric or character representing the Coordinate Reference System (CRS) code to assign to the LAS object. Default is EPSG:3035.}
+\item{crs_code}{Numeric or character. Coordinate Reference System (CRS) code to assign to the output LAS object. Default is EPSG:3035.}
+
+\item{method}{Integer. Selects the rotation method to apply:
+\itemize{
+  \item \code{1} = PCA-based alignment using the lowest 5% of points (ground-based rotation).
+  \item \code{2} = PCA alignment of the entire centered point cloud (global variance-based rotation).
+}}
 }
 \value{
-A LAS object with rotated and vertically aligned coordinates, with updated CRS and basic classification fields.
+A LAS object with rotated and aligned coordinates, and optional CRS assignment.
 }
 \description{
-This function rotates a 3D mesh represented by a LAS point cloud object so that its lowest surface points
-are aligned with the vertical (Z) axis. It applies Principal Component Analysis (PCA) on the lowest 5th percentile
-of points to estimate the normal vector, then uses Rodrigues' rotation formula to realign the mesh.
+This function provides a unified interface to rotate and align a 3D mesh point cloud using one of two available methods.
+The goal is to reorient the point cloud so that the main planar surface (usually the ground or horizontal base) becomes aligned with the vertical Z-axis.
 }
 \details{
-The function extracts vertex coordinates from the mesh, constructs a LAS object, estimates the ground plane via PCA on
-the lowest 5% Z values, calculates the rotation matrix to align the ground plane normal to the vertical axis,
-applies the rotation, and repositions the point cloud so the minimum Z is zero.
+\strong{Method 1:} Uses Principal Component Analysis (PCA) on the lowest 5% of Z-values (assumed ground points),
+then applies Rodrigues' rotation formula to align the normal vector of the estimated plane to the Z-axis.
+
+\strong{Method 2:} Centers the full point cloud, performs PCA, and applies the resulting rotation matrix to align the major axis of variation to the Z-axis.
+
+Use Method 1 when the base of the object (e.g., ground) is clearly flat and distinguishable.
+Use Method 2 when the point cloud is more abstract, symmetric, or lacks a clear ground reference.
 }
 \examples{
 \dontrun{
-  las_aligned <- rotate_and_align_las(mesh_object)
+mesh <- vcgPlyRead("path/to/mesh.ply", updateNormals = TRUE)
+las_rotated <- rotate_and_align_las(mesh, method = 1)
 }
+
 }
