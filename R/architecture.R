@@ -388,7 +388,6 @@ rotate_and_align_las_Arch1 <- function(mesh, crs_code = 3035) {
 #' This function rotates a 3D mesh by applying PCA on the entire centered point cloud to align
 #' the axes of variation. It is useful for objects where orientation is not defined by ground points
 #' but by overall geometry (e.g., indoor scans or artifacts).
-#'
 #' @param mesh A mesh object containing vertex data, expected to have a component \code{vb} with 3D coordinates.
 #' @param crs_code EPSG code for the Coordinate Reference System (CRS) to assign to the LAS object. Default is 3035.
 #'
@@ -407,6 +406,7 @@ rotate_and_align_las_method2 <- function(mesh, crs_code = 3035) {
   rotate_and_align_las_Arch2(mesh, crs_code)
 }
 
+#' @importFrom data.table as.data.table
 #  Note: no @export tag here.
 rotate_and_align_las_Arch2 <- function(ply, crs_code = 3035) {
   coords <- t(ply$vb[1:3, , drop = FALSE])

@@ -8,6 +8,7 @@ Description: Un pacchetto per elaborare, analizzare e visualizzare strutture arc
 License: GPL-3 | file LICENSE
 LicenseFile: LICENSE
 Imports:
+    data.table,
     Rcpp,
     lidR,
     dplyr,
