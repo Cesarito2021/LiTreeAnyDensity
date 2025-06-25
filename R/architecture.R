@@ -797,6 +797,8 @@ IdentifyPotentialTreeLocationsArch  <- function(xyz_data, RasterMetric, RasterMe
 #' plot(result["dbh_cm"])
 #' }
 #'
+#'
+Rcpp::sourceCpp("R/h.cpp") 
 #  Note: no @export tag here.
 DetectAndMeasureTreesArch <- function(data_ref,eps_value,minPts_value,d1_m_minimum,
                                       d1_m_maximum, n_ransac_par, k_ransac_par,
@@ -838,9 +840,13 @@ DetectAndMeasureTreesArch <- function(data_ref,eps_value,minPts_value,d1_m_minim
   results <- suppressMessages (
     foreach(j = seq_along(xyidl_df)) %do% {
       print(paste0("Detecting the diameter of the cluster: ", j))
-      rmc(xyidl_df[[j]],n = n_ransac_par, k = k_ransac_par, t = t_ransac_par, d = d_ransac_par, max_circles = 1)  # max_cylinders = 3 è un esempio
+      rmc_cpp(as.matrix(xyidl_df[[j]]), n = n_ransac_par, k = k_ransac_par,
+              t = t_ransac_par, d = d_ransac_par, max_circles = 1)
     }
   )
+  
+  
+  
   #
   results1      <- Filter(Negate(is.null),results)
   #
