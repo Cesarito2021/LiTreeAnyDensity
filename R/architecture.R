@@ -808,7 +808,7 @@ DetectAndMeasureTreesArch <- function(data_ref,eps_value,minPts_value,d1_m_minim
     return(NULL)
   }
   #
-  DBCAN_max <-suppressWarnings( dbscan(data_ref, eps=eps_value, minPts = minPts_value))
+  DBCAN_max <-suppressWarnings( dbscan(data_ref, eps=eps_value, minPts = minPts_value,search="kdtree"))
   # 
   cluster_labels  <- DBCAN_max[["cluster"]]
   #
