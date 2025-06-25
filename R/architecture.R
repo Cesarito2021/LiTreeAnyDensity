@@ -799,7 +799,7 @@ IdentifyPotentialTreeLocationsArch  <- function(xyz_data, RasterMetric, RasterMe
 #' plot(result["dbh_cm"])
 #' }
 #'
-#  Note: no @export tag here.
+#  Note: no @export tag here
 DetectAndMeasureTreesArch <- function(data_ref,eps_value,minPts_value,d1_m_minimum,
                                       d1_m_maximum, n_ransac_par, k_ransac_par,
                                       t_ransac_par, d_ransac_par){
