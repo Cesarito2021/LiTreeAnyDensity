@@ -774,7 +774,9 @@ IdentifyPotentialTreeLocationsArch  <- function(xyz_data, RasterMetric, RasterMe
 #' Tree Detection and Diameter Measurement from Point Cloud Data
 #'
 #' This function detects tree stems and estimates their diameters using DBSCAN clustering followed by RANSAC-based circle fitting on 3D point cloud data. It outputs an `sf` object with the estimated diameter at breast height (DBH), basal area, and stem location. This tool is designed for use in forest structure analysis from terrestrial LiDAR or photogrammetric point clouds.
-#'
+#' @name DetectAndMeasureTreesArch
+#' @useDynLib LiTreeAnyDensity, .registration = TRUE
+#' @importFrom Rcpp sourceCpp
 #' @param data_ref A data frame containing 3D coordinates (x, y, z) of point cloud data.
 #' @param eps_value The epsilon parameter for the DBSCAN clustering algorithm, defining the neighborhood radius.
 #' @param minPts_value The minimum number of points required to form a dense region in DBSCAN.
@@ -797,8 +799,6 @@ IdentifyPotentialTreeLocationsArch  <- function(xyz_data, RasterMetric, RasterMe
 #' plot(result["dbh_cm"])
 #' }
 #'
-#'
-Rcpp::sourceCpp("R/h.cpp") 
 #  Note: no @export tag here.
 DetectAndMeasureTreesArch <- function(data_ref,eps_value,minPts_value,d1_m_minimum,
                                       d1_m_maximum, n_ransac_par, k_ransac_par,
