@@ -837,16 +837,45 @@ DetectAndMeasureTreesArch <- function(data_ref,eps_value,minPts_value,d1_m_minim
     }
   )
   #
-  results <- suppressMessages (
+  quiet_cpp <- function(expr) {
+    out <- file(tempfile(), open = "wt")
+    err <- file(tempfile(), open = "wt")
+    sink(out)                           # cattura stdout
+    sink(err, type = "message")         # cattura stderr (dove scrivono quei "warning:")
+    on.exit({
+      sink(type = "message"); sink()    # ripristina
+      close(out); close(err)
+    }, add = TRUE)
+    
+    # zittisce anche warning/messaggi R
+    withCallingHandlers(
+      suppressWarnings(suppressMessages(force(expr))),
+      warning = function(w) invokeRestart("muffleWarning")
+    )
+  }
+  #
+  results <- suppressMessages(
     foreach(j = seq_along(xyidl_df)) %do% {
-      print(paste0("Detecting the diameter of the cluster: ", j))
-      rmc_cpp(as.matrix(xyidl_df[[j]]), n = n_ransac_par, k = k_ransac_par,
-              t = t_ransac_par, d = d_ransac_par, max_circles = 1)
+      # (opzionale) stampa 1 riga sola
+      cat(sprintf("\rDetecting cluster: %d", j)); flush.console()
+      
+      tryCatch(
+        quiet_cpp(                                   # <— QUI
+          rmc(as.matrix(xyidl_df[[j]]),
+              n = n_ransac_par,
+              k = k_ransac_par,
+              t = t_ransac_par,
+              d = d_ransac_par,
+              max_circles = 1)
+        ),
+        error = function(e) {
+          # un messaggio sintetico in UNA riga
+          cat(sprintf("\rDetecting cluster: %d  [skipped: %s]\n", j, e$message))
+          NULL
+        }
+      )
     }
   )
-  
-  
-  
   #
   results1      <- Filter(Negate(is.null),results)
   #
@@ -856,15 +885,31 @@ DetectAndMeasureTreesArch <- function(data_ref,eps_value,minPts_value,d1_m_minim
     }
   }), recursive = FALSE)
   #
-  suppressWarnings(results_dbh <- foreach(k = seq_along(flattened_results)) %do% {
-    print(paste0("Measuring-Refining the diameter of the cluster: ", k))
-    create_circle_shapefile_from_ransac(flattened_results[[k]], 
-                                        circle_id = k, 
-                                        crs = 3035, 
-                                        d1_m_minimum = d1_m_minimum, 
-                                        d1_m_maximum = d1_m_maximum, 
-                                        n_points=180)  # Aggiungi n_points
-  })
+  results_dbh <- suppressWarnings(
+    foreach::foreach(k = seq_along(flattened_results)) %do% {
+      cat(sprintf("\rMeasuring-Refining the diameter of the cluster: %d", k)); flush.console()
+      tryCatch(
+        {
+          quiet_cpp(
+            create_circle_shapefile_from_ransac(
+              flattened_results[[k]],
+              circle_id = k,
+              crs = 32632,
+              d1_m_minimum = d1_m_minimum,
+              d1_m_maximum = d1_m_maximum,
+              n_points = 180
+            )
+          )
+        },
+        error = function(e) {
+          # messaggio sintetico in UNA riga
+          cat(sprintf("Cluster %d skipped: %s\n", k, e$message))
+          NULL
+        }
+      )
+    }
+  )
+  #
   # # filter negative files
   results_dbh <- Filter(Negate(is.null), results_dbh)
   # # merged of files
