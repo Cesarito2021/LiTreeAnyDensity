@@ -54,11 +54,58 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// overlay_func_cpp
+List overlay_func_cpp(List data, int number_layers, IntegerVector values_x, IntegerVector values_y, IntegerVector j1);
+RcppExport SEXP _LiTreeAnyDensity_overlay_func_cpp(SEXP dataSEXP, SEXP number_layersSEXP, SEXP values_xSEXP, SEXP values_ySEXP, SEXP j1SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< int >::type number_layers(number_layersSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type values_x(values_xSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type values_y(values_ySEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type j1(j1SEXP);
+    rcpp_result_gen = Rcpp::wrap(overlay_func_cpp(data, number_layers, values_x, values_y, j1));
+    return rcpp_result_gen;
+END_RCPP
+}
+// vectorized_custom_fun_bis
+NumericMatrix vectorized_custom_fun_bis(NumericMatrix x, NumericMatrix y, int valx, int valy);
+RcppExport SEXP _LiTreeAnyDensity_vectorized_custom_fun_bis(SEXP xSEXP, SEXP ySEXP, SEXP valxSEXP, SEXP valySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type x(xSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type y(ySEXP);
+    Rcpp::traits::input_parameter< int >::type valx(valxSEXP);
+    Rcpp::traits::input_parameter< int >::type valy(valySEXP);
+    rcpp_result_gen = Rcpp::wrap(vectorized_custom_fun_bis(x, y, valx, valy));
+    return rcpp_result_gen;
+END_RCPP
+}
+// overlay_func
+List overlay_func(List data, int number_layers, IntegerVector values_x, IntegerVector values_y, IntegerVector j1);
+RcppExport SEXP _LiTreeAnyDensity_overlay_func(SEXP dataSEXP, SEXP number_layersSEXP, SEXP values_xSEXP, SEXP values_ySEXP, SEXP j1SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< int >::type number_layers(number_layersSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type values_x(values_xSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type values_y(values_ySEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type j1(j1SEXP);
+    rcpp_result_gen = Rcpp::wrap(overlay_func(data, number_layers, values_x, values_y, j1));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_LiTreeAnyDensity_fitCircle", (DL_FUNC) &_LiTreeAnyDensity_fitCircle, 2},
     {"_LiTreeAnyDensity_rc_cpp", (DL_FUNC) &_LiTreeAnyDensity_rc_cpp, 5},
     {"_LiTreeAnyDensity_rmc_cpp", (DL_FUNC) &_LiTreeAnyDensity_rmc_cpp, 6},
+    {"_LiTreeAnyDensity_overlay_func_cpp", (DL_FUNC) &_LiTreeAnyDensity_overlay_func_cpp, 5},
+    {"_LiTreeAnyDensity_vectorized_custom_fun_bis", (DL_FUNC) &_LiTreeAnyDensity_vectorized_custom_fun_bis, 4},
+    {"_LiTreeAnyDensity_overlay_func", (DL_FUNC) &_LiTreeAnyDensity_overlay_func, 5},
     {NULL, NULL, 0}
 };
 

@@ -13,3 +13,15 @@ rmc_cpp <- function(data, n, k, t, d, max_circles) {
     .Call(`_LiTreeAnyDensity_rmc_cpp`, data, n, k, t, d, max_circles)
 }
 
+overlay_func_cpp <- function(data, number_layers, values_x, values_y, j1) {
+    .Call(`_LiTreeAnyDensity_overlay_func_cpp`, data, number_layers, values_x, values_y, j1)
+}
+
+vectorized_custom_fun_bis <- function(x, y, valx, valy) {
+    .Call(`_LiTreeAnyDensity_vectorized_custom_fun_bis`, x, y, valx, valy)
+}
+
+overlay_func <- function(data, number_layers, values_x, values_y, j1) {
+    .Call(`_LiTreeAnyDensity_overlay_func`, data, number_layers, values_x, values_y, j1)
+}
+
