@@ -25,7 +25,7 @@ For_xyzi <- function(data){
 #' @return A \code{RasterLayer} object representing the spatial distribution of the selected feature.
 #' @examples
 #' df <- data.frame(x = runif(100), y = runif(100), z = rnorm(100))
-#' r <- ConvertXYZtoRASTER(df, feature = "mean", resolution = 1, crs = "+init=epsg:32632")
+#' r <- ConvertXYZtoRASTER(df, feature = "mean", resolution = 1, crs = "+init=epsg:32633")
 #' @export
 ConvertXYZtoRASTER <- function(data, feature, resolution, crs) {
   if (feature == "mean") {
@@ -894,7 +894,7 @@ DetectAndMeasureTreesArch <- function(data_ref,eps_value,minPts_value,d1_m_minim
             create_circle_shapefile_from_ransac(
               flattened_results[[k]],
               circle_id = k,
-              crs = 32632,
+              crs = 32633,
               d1_m_minimum = d1_m_minimum,
               d1_m_maximum = d1_m_maximum,
               n_points = 180

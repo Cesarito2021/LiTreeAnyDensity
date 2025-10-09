@@ -23,5 +23,5 @@ This function converts point cloud data (x, y, z) into a raster layer based on a
 }
 \examples{
 df <- data.frame(x = runif(100), y = runif(100), z = rnorm(100))
-r <- ConvertXYZtoRASTER(df, feature = "mean", resolution = 1, crs = "+init=epsg:32632")
+r <- ConvertXYZtoRASTER(df, feature = "mean", resolution = 1, crs = "+init=epsg:32633")
 }
