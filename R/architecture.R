@@ -950,49 +950,16 @@ DetectAndMeasureTreesArch <- function(data_ref,eps_value,minPts_value,d1_m_minim
 #' Heuristic Picker for UTM EPSG Codes in the U.S. South
 #'
 #' Chooses an appropriate projected CRS (EPSG) for a given spatial object by
-#' scoring a small set of candidate UTM zones commonly used in the southern
-#' United States. The score favors candidates whose transformed extent is
-#' geographically plausible for the U.S. South, has a modest map width/height
-#' (to avoid wildly distorted CRSs), and whose UTM zone matches the feature's
-#' central longitude.
+#' scoring a set of candidate UTM zones (WGS84 & NAD83, 15–17N) used in the U.S. South.
 #'
-#' @param las An object with a valid bounding box understood by \pkg{sf}, such
-#'   as an \code{sf} or \code{sfc} geometry, or anything for which
-#'   \code{sf::st_bbox()} works.
+#' @param las An object with a bounding box understood by \pkg{sf} (e.g. \code{sf}/\code{sfc}).
 #'
-#' @details
-#' The function evaluates the bounding box under each candidate EPSG in
-#' \code{c(32616, 26916, 32617, 26917, 32615, 26915)} (WGS 84 / UTM 15–17N and
-#' NAD83 / UTM 15–17N). For each candidate it:
-#' \enumerate{
-#'   \item Transforms the box to WGS84 (\code{EPSG:4326}) and computes the
-#'     center lon/lat.
-#'   \item Measures great‐circle width and height (km) of the box using
-#'     \code{sf::st_distance()} between midpoints of opposite edges.
-#'   \item Builds a score as the sum of three binary checks:
-#'     \itemize{
-#'       \item \emph{geo:} center lies within a coarse southern U.S. window
-#'         (\code{-105 < lon < -75}, \code{24 < lat < 37});
-#'       \item \emph{siz:} extent size is reasonable (\code{0.5–20} km in both
-#'         width and height);
-#'       \item \emph{zone\_ok:} UTM zone implied by center longitude matches the
-#'         candidate's zone number.
-#'     }
-#' }
-#' The candidate with the highest score is returned; ties are broken by the
-#' first maximum.
+#' @details For each candidate EPSG, the function transforms the bbox to WGS84,
+#' computes center lon/lat and great-circle width/height (km), and scores:
+#' (i) center in a coarse South US window; (ii) reasonable extent size;
+#' (iii) UTM zone consistency with center longitude. Highest score wins.
 #'
-#' @return A \code{list} with components:
-#' \describe{
-#'   \item{epsg}{The selected EPSG code (integer).}
-#'   \item{lon}{Center longitude of the transformed bounding box (degrees).}
-#'   \item{lat}{Center latitude of the transformed bounding box (degrees).}
-#' }
-#'
-#' @note This is a lightweight heuristic intended for small to moderate AOIs in
-#' UTM zones 15–17N across the southern/eastern U.S. It will return
-#' \code{-Inf}-scored candidates as invalid and skip them; extremely large
-#' extents or inputs outside the target region may yield suboptimal choices.
+#' @return A list with \code{epsg} (integer), \code{lon} and \code{lat} (degrees).
 #'
 #' @examples
 #' \dontrun{
@@ -1000,6 +967,9 @@ DetectAndMeasureTreesArch <- function(data_ref,eps_value,minPts_value,d1_m_minim
 #' poly <- st_as_sfc(st_bbox(c(xmin=-90.2, ymin=29.9, xmax=-90.0, ymax=30.1), crs=4326))
 #' pick_epsg_south(poly)
 #' }
+#'
+#' @importFrom sf st_bbox st_transform st_as_sfc st_distance st_point
+#' @export
 pick_epsg_south <- function(las) {
   bb <- st_bbox(las)
   cands <- c(32616, 26916, 32617, 26917, 32615, 26915)
@@ -1008,10 +978,14 @@ pick_epsg_south <- function(las) {
     if (inherits(bb_ll, "try-error")) return(c(-Inf, NA, NA))
     b <- st_bbox(bb_ll)
     lonc <- (b["xmin"] + b["xmax"])/2; latc <- (b["ymin"] + b["ymax"])/2
-    wkm <- as.numeric(st_distance(st_sfc(st_point(c(b["xmin"], latc)), crs=4326),
-                                  st_sfc(st_point(c(b["xmax"], latc)), crs=4326)))/1000
-    hkm <- as.numeric(st_distance(st_sfc(st_point(c(lonc, b["ymin"])), crs=4326),
-                                  st_sfc(st_point(c(lonc, b["ymax"])), crs=4326)))/1000
+    wkm <- as.numeric(st_distance(
+      st_sfc(st_point(c(b["xmin"],  latc)), crs = 4326),
+      st_sfc(st_point(c(b["xmax"],  latc)), crs = 4326)
+    ))/1000
+    hkm <- as.numeric(st_distance(
+      st_sfc(st_point(c(lonc, b["ymin"])), crs = 4326),
+      st_sfc(st_point(c(lonc, b["ymax"])), crs = 4326)
+    ))/1000
     geo <- as.integer(lonc > -105 & lonc < -75 & latc > 24 & latc < 37)
     siz <- as.integer(wkm > 0.5 & wkm < 20 & hkm > 0.5 & hkm < 20)
     zone_ok <- as.integer((epsg != 5070) && ((epsg %% 100) == (floor((lonc + 180)/6) + 1)))
@@ -1022,24 +996,21 @@ pick_epsg_south <- function(las) {
   list(epsg = cands[best], lon = S[best,2], lat = S[best,3])
 }
 
+
 #' Derive UTM Zone and Hemisphere from an EPSG Code
 #'
-#' Parses a UTM EPSG code to extract the zone number and hemisphere flag.
-#' Supports WGS 84 / UTM North (\code{EPSG:32601–32660}) and WGS 84 / UTM South
-#' (\code{EPSG:32701–32760}). Non-UTM EPSG codes return \code{NA} values.
+#' Extracts the UTM zone number and hemisphere from WGS84 UTM EPSG codes.
+#' Supports \code{32601–32660} (north) and \code{32701–32760} (south).
 #'
 #' @param epsg Integer EPSG code.
-#'
-#' @return A \code{list} with components:
-#' \describe{
-#'   \item{zone}{UTM zone number (1–60) or \code{NA}.}
-#'   \item{hemisphere}{\code{"N"} for northern, \code{"S"} for southern, or \code{NA}.}
-#' }
+#' @return A list with \code{zone} (1–60 or \code{NA}) and \code{hemisphere} ("N","S", or \code{NA}).
 #'
 #' @examples
 #' derive_utm_zone(32616)  # zone=16, hemisphere="N"
 #' derive_utm_zone(32733)  # zone=33, hemisphere="S"
-#' derive_utm_zone(26917)  # not in 326xx/327xx -> NA
+#' derive_utm_zone(26917)  # not WGS84 UTM -> NA
+#'
+#' @export
 derive_utm_zone <- function(epsg) {
   if (epsg >= 32601 && epsg <= 32660) {
     zone  <- epsg - 32600
