@@ -63,8 +63,8 @@ Slice3DByHeight <- function(LasData,Z_mininum,Z_maximum,voxel_size) {
 #' @import foreach
 #' @import raster
 #' @export
-Rasterize3DSlices <- function(LasData,voxel_size) {
-  Rasterize3DSlicesArch(LasData,voxel_size)
+Rasterize3DSlices <- function(LasData,voxel_size,las) {
+  Rasterize3DSlicesArch(LasData,voxel_size,las)
 }
 
 #' Identify Potential Tree Stem Locations from 3D Raster Metrics
