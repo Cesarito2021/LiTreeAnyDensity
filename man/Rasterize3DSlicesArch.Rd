@@ -4,7 +4,7 @@
 \alias{Rasterize3DSlicesArch}
 \title{Rasterization of 3D Sliced Point Cloud Data}
 \usage{
-Rasterize3DSlicesArch(LasData, voxel_size)
+Rasterize3DSlicesArch(LasData, voxel_size, las)
 }
 \arguments{
 \item{LasData}{A list of data frames, each containing 3D point cloud data (columns: `x`, `y`, `z`) 
