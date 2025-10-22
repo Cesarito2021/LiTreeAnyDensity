@@ -10,19 +10,15 @@ derive_utm_zone(epsg)
 \item{epsg}{Integer EPSG code.}
 }
 \value{
-A \code{list} with components:
-\describe{
-  \item{zone}{UTM zone number (1–60) or \code{NA}.}
-  \item{hemisphere}{\code{"N"} for northern, \code{"S"} for southern, or \code{NA}.}
-}
+A list with \code{zone} (1–60 or \code{NA}) and \code{hemisphere} ("N","S", or \code{NA}).
 }
 \description{
-Parses a UTM EPSG code to extract the zone number and hemisphere flag.
-Supports WGS 84 / UTM North (\code{EPSG:32601–32660}) and WGS 84 / UTM South
-(\code{EPSG:32701–32760}). Non-UTM EPSG codes return \code{NA} values.
+Extracts the UTM zone number and hemisphere from WGS84 UTM EPSG codes.
+Supports \code{32601–32660} (north) and \code{32701–32760} (south).
 }
 \examples{
 derive_utm_zone(32616)  # zone=16, hemisphere="N"
 derive_utm_zone(32733)  # zone=33, hemisphere="S"
-derive_utm_zone(26917)  # not in 326xx/327xx -> NA
+derive_utm_zone(26917)  # not WGS84 UTM -> NA
+
 }
